@@ -1,5 +1,5 @@
 import streamlit as st
-from ulits.response import generate_text
+from utils.response import generate_text
 
 
 st.header("Job Search Assistance")
