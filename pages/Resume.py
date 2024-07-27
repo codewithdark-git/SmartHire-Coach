@@ -1,7 +1,7 @@
 import streamlit as st
 import re
-from ulits.helper import extract_text_from_pdf, extract_text_from_docx, preprocess_text
-from ulits.response import generate_text
+from utils.helper import extract_text_from_pdf, extract_text_from_docx, preprocess_text
+from utils.response import generate_text
 
 
 st.header("Resume Review")
