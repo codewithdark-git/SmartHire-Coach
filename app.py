@@ -33,6 +33,7 @@ def main():
                                           ["General", "Technical", "Behavioral"])
             if st.button("Start New Interview"):
                 st.session_state.current_question_index = 0
+                st.session_state.job_position = False
                 st.session_state.interview_completed = False
                 st.session_state.chat_history = []
 
