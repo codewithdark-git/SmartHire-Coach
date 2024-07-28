@@ -46,6 +46,7 @@ class RealTimePipeline:
 
         return self.question_cache[interview_type]
 
+
     def get_question_prompt(self, interview_type):
         if interview_type == "General":
             return "Generate a list of 10 general interview questions, ranging from easy to hard. For each question, provide the question text and a difficulty level from 1 (easiest) to 5 (hardest). Format your response as a JSON array of objects."
