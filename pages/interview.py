@@ -7,8 +7,8 @@ def interview_chatbot(pipeline, interview_type):
     if 'chat_history' not in st.session_state:
         st.session_state.chat_history = []
 
-    for message in st.session_state.chat_history:
-        with st.chat_message(message["role"]):
+    for idx, message in enumerate(st.session_state.chat_history):
+        with st.chat_message(message["role"], key=f"message_{idx}"):
             st.markdown(message["content"])
 
     if 'current_question_index' not in st.session_state:
@@ -17,7 +17,17 @@ def interview_chatbot(pipeline, interview_type):
     if 'waiting_for_follow_up' not in st.session_state:
         st.session_state.waiting_for_follow_up = False
 
-    questions = pipeline.fetch_questions(interview_type)
+    if interview_type == "Technical" and 'job_position' not in st.session_state:
+        st.chat_message("assistant").markdown("Please enter the specific job position you are preparing for interveiw.")
+        job_position = st.chat_input("Your job position", key="job_position_input")
+        if job_position:
+            st.chat_message("user").markdown(job_position)
+            st.session_state.job_position = job_position
+
+    if interview_type == "Technical" and 'job_position' in st.session_state:
+        questions = pipeline.fetch_questions(interview_type, st.session_state.job_position)
+    else:
+        questions = pipeline.fetch_questions(interview_type)
 
     if st.session_state.current_question_index < len(questions):
         current_question = questions[st.session_state.current_question_index]
@@ -28,7 +38,7 @@ def interview_chatbot(pipeline, interview_type):
                     st.markdown(current_question['question'])
                 st.session_state.chat_history.append({"role": "assistant", "content": current_question['question']})
 
-            user_answer = st.chat_input("Your answer")
+            user_answer = st.chat_input("Your answer", key=f"user_answer_")
 
             if user_answer:
                 with st.chat_message("user"):
@@ -36,10 +46,10 @@ def interview_chatbot(pipeline, interview_type):
                 st.session_state.chat_history.append({"role": "user", "content": user_answer})
 
                 feedback = pipeline.process_answer(current_question, user_answer)
-                with st.expander("Feedback:"):
-                    with st.chat_message("assistant"):
-                        st.markdown(feedback)
-                    st.session_state.chat_history.append({"role": "assistant", "content": feedback})
+
+                with st.chat_message("assistant"):
+                    st.markdown(feedback)
+                st.session_state.chat_history.append({"role": "assistant", "content": feedback})
 
                 follow_up_question = pipeline.generate_follow_up_question(current_question, user_answer)
                 with st.chat_message("assistant"):
@@ -75,3 +85,5 @@ def reset_interview():
     st.session_state.interview_completed = False
     st.session_state.chat_history = []
     st.session_state.waiting_for_follow_up = False
+    if 'job_position' in st.session_state:
+        del st.session_state.job_position
