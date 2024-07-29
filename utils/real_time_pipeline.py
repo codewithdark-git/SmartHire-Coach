@@ -13,7 +13,7 @@ class RealTimePipeline:
     def generate_text(self, prompt):
         try:
             response = self.client.chat.completions.create(
-                model=g4f.models.gpt_4o,  # Changed to gpt_4 as gpt_4o is not a standard model name
+                model=g4f.models.gpt_4o,
                 messages=[{"role": "user", "content": prompt}]
             )
             return response.choices[0].message.content.strip()
@@ -36,7 +36,8 @@ class RealTimePipeline:
                 {
                     "question": q.get("question", ""),
                     "difficulty": int(q.get("difficulty", 3)),
-                    "type": interview_type
+                    "type": interview_type,
+                    "options": q.get("options", []) if interview_type == "Technical" else []
                 }
                 for q in questions
                 if "question" in q
@@ -51,9 +52,9 @@ class RealTimePipeline:
             return "Generate a list of 10 general interview questions, ranging from easy to hard. For each question, provide the question text and a difficulty level from 1 (easiest) to 5 (hardest). Format your response as a JSON array of objects."
         elif interview_type == "Technical":
             if job_position:
-                return f"Generate a list of 10 technical interview questions related to the job position '{job_position}', covering software development, data structures, and algorithms. Include a mix of conceptual questions and coding problems. For each question, provide the question text and a difficulty level from 1 (easiest) to 5 (hardest). Format your response as a JSON array of objects."
+                return f"Generate a list of 10 technical interview questions related to the job position '{job_position}', covering software development, data structures, and algorithms. Include a mix of conceptual questions and coding problems. For each question, provide the question text, a difficulty level from 1 (easiest) to 5 (hardest), and 4 multiple-choice options. Format your response as a JSON array of objects, where each object has 'question', 'difficulty', and 'options' fields."
             else:
-                return "Generate a list of 10 general technical interview questions covering software development, data structures, and algorithms. Include a mix of conceptual questions and coding problems. For each question, provide the question text and a difficulty level from 1 (easiest) to 5 (hardest). Format your response as a JSON array of objects."
+                return "Generate a list of 10 general technical interview questions covering software development, data structures, and algorithms. Include a mix of conceptual questions and coding problems. For each question, provide the question text, a difficulty level from 1 (easiest) to 5 (hardest), and 4 multiple-choice options. Format your response as a JSON array of objects, where each object has 'question', 'difficulty', and 'options' fields."
         elif interview_type == "Behavioral":
             return "Generate a list of 10 behavioral interview questions that assess a candidate's soft skills, problem-solving abilities, and past experiences. For each question, provide the question text and a difficulty level from 1 (easiest) to 5 (hardest). Format your response as a JSON array of objects."
 
@@ -92,13 +93,21 @@ class RealTimePipeline:
         return self.generate_text(prompt)
 
     def extract_questions_from_text(self, text):
-        pattern = r'"question"\s*:\s*"([^"]*)"\s*,\s*"difficulty"\s*:\s*(\d+)'
+        pattern = r'"question"\s*:\s*"([^"]*)"\s*,\s*"difficulty"\s*:\s*(\d+)(?:,\s*"options"\s*:\s*(\[[^\]]*\]))?'
         matches = re.findall(pattern, text)
 
-        questions = [
-            {"question": match[0], "difficulty": int(match[1])}
-            for match in matches
-        ]
+        questions = []
+        for match in matches:
+            question = {
+                "question": match[0],
+                "difficulty": int(match[1])
+            }
+            if match[2]:
+                try:
+                    question["options"] = json.loads(match[2])
+                except json.JSONDecodeError:
+                    question["options"] = []
+            questions.append(question)
 
         return questions
 
