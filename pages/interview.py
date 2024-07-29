@@ -1,4 +1,6 @@
 import streamlit as st
+import random
+
 
 def interview_chatbot(pipeline, interview_type):
     st.header(f"{interview_type} Interview Practice")
@@ -16,71 +18,98 @@ def interview_chatbot(pipeline, interview_type):
     if 'waiting_for_follow_up' not in st.session_state:
         st.session_state.waiting_for_follow_up = False
 
-    if interview_type == "Technical" and 'job_position' not in st.session_state:
-        st.chat_message("assistant").markdown("Please enter the specific job position you are preparing for interview.")
-        job_position = st.chat_input("Your job position", key="job_position_input")
-        if job_position:
-            st.chat_message("user").markdown(job_position)
-            st.session_state.job_position = job_position
-            st.experimental_rerun()
-
-    questions = pipeline.fetch_questions(interview_type, st.session_state.get('job_position'))
+    job_position = st.session_state.get('job_position') if interview_type == "Technical" else None
+    questions = pipeline.fetch_questions(interview_type, job_position)
 
     if st.session_state.current_question_index < len(questions):
         current_question = questions[st.session_state.current_question_index]
 
         if not st.session_state.waiting_for_follow_up:
-            if not st.session_state.chat_history or st.session_state.chat_history[-1]["role"] != "assistant":
-                with st.chat_message("assistant"):
-                    st.markdown(current_question['question'])
-                st.session_state.chat_history.append({"role": "assistant", "content": current_question['question']})
+            display_question(current_question, interview_type)
 
-            user_answer = st.chat_input("Your answer", key=f"user_answer_{st.session_state.current_question_index}")
+            user_answer = get_user_answer(current_question, interview_type)
 
-            if user_answer:
-                with st.chat_message("user"):
-                    st.markdown(user_answer)
-                st.session_state.chat_history.append({"role": "user", "content": user_answer})
-
-                feedback = pipeline.process_answer(current_question, user_answer)
-
-                with st.chat_message("assistant"):
-                    st.markdown(feedback)
-                st.session_state.chat_history.append({"role": "assistant", "content": feedback})
-
-                follow_up_question = pipeline.generate_follow_up_question(current_question, user_answer)
-                with st.chat_message("assistant"):
-                    st.markdown(f"**Follow-Up Question:** {follow_up_question}")
-                st.session_state.chat_history.append(
-                    {"role": "assistant", "content": f"**Follow-Up Question:** {follow_up_question}"})
-
-                st.session_state.waiting_for_follow_up = True
+            if user_answer is not None:
+                process_user_answer(pipeline, current_question, user_answer)
                 st.experimental_rerun()
 
         else:
-            follow_up_answer = st.chat_input("Your answer to the follow-up question", key=f"follow_up_{st.session_state.current_question_index}")
-
-            if follow_up_answer:
-                with st.chat_message("user"):
-                    st.markdown(follow_up_answer)
-                st.session_state.chat_history.append({"role": "user", "content": follow_up_answer})
-
-                st.session_state.current_question_index += 1
-                st.session_state.waiting_for_follow_up = False
-                st.experimental_rerun()
+            handle_follow_up_question()
 
     if st.session_state.current_question_index >= len(questions):
-        st.session_state.interview_completed = True
+        display_interview_completion(pipeline)
 
-    if getattr(st.session_state, 'interview_completed', False):
-        with st.chat_message("assistant"):
-            overall_feedback = pipeline.generate_overall_feedback(st.session_state.chat_history)
-            st.markdown(overall_feedback)
-        if st.button("Start New Interview", key=f"new_interview_{interview_type}"):
-            reset_interview()
-            st.experimental_rerun()
 
-def reset_interview():
-    for key in ['current_question_index', 'interview_completed', 'chat_history', 'waiting_for_follow_up', 'job_position']:
-        if key in st.session_state:
-            del st.session_state[key]
+def display_question(question, interview_type):
+    with st.chat_message("assistant"):
+        st.markdown(question['question'])
+    st.session_state.chat_history.append({"role": "assistant", "content": question['question']})
+
+    if interview_type == "Technical" and st.session_state.get('question_type') == "Multiple Choice":
+        options = question.get('options', [])
+        if options:
+            st.markdown("Please select your answer:")
+            for option in options:
+                st.markdown(f"- {option}")
+
+
+def get_user_answer(question, interview_type):
+    if interview_type == "Technical" and st.session_state.get('question_type') == "Multiple Choice":
+        options = question.get('options', [])
+        if options:
+            return st.radio("Your answer:", options, key=f"mc_answer_{st.session_state.current_question_index}")
+    else:
+        return st.chat_input("Your answer")
+
+
+def process_user_answer(pipeline, question, user_answer):
+    with st.chat_message("user"):
+        st.markdown(user_answer)
+    st.session_state.chat_history.append({"role": "user", "content": user_answer})
+
+    feedback = pipeline.process_answer(question, user_answer)
+
+    with st.chat_message("assistant"):
+        st.markdown(feedback)
+    st.session_state.chat_history.append({"role": "assistant", "content": feedback})
+
+    follow_up_question = pipeline.generate_follow_up_question(question, user_answer)
+    with st.chat_message("assistant"):
+        st.markdown(f"**Follow-Up Question:** {follow_up_question}")
+    st.session_state.chat_history.append(
+        {"role": "assistant", "content": f"**Follow-Up Question:** {follow_up_question}"})
+
+    st.session_state.waiting_for_follow_up = True
+
+
+def handle_follow_up_question():
+    follow_up_answer = st.chat_input("Your answer to the follow-up question")
+
+    if follow_up_answer:
+        with st.chat_message("user"):
+            st.markdown(follow_up_answer)
+        st.session_state.chat_history.append({"role": "user", "content": follow_up_answer})
+
+        st.session_state.current_question_index += 1
+        st.session_state.waiting_for_follow_up = False
+
+
+def display_interview_completion(pipeline):
+    st.session_state.interview_completed = True
+    with st.chat_message("assistant"):
+        overall_feedback = pipeline.generate_overall_feedback(st.session_state.chat_history)
+        st.markdown(overall_feedback)
+
+    if st.button("View Detailed Feedback"):
+        display_detailed_feedback(pipeline)
+
+
+def display_detailed_feedback(pipeline):
+    st.subheader("Detailed Feedback")
+    for idx, qa_pair in enumerate(zip(st.session_state.chat_history[::2], st.session_state.chat_history[1::2])):
+        question, answer = qa_pair
+        st.markdown(f"**Question {idx + 1}:** {question['content']}")
+        st.markdown(f"**Your Answer:** {answer['content']}")
+        feedback = pipeline.process_answer({"question": question['content']}, answer['content'])
+        st.markdown(f"**Feedback:** {feedback}")
+        st.markdown("---")
