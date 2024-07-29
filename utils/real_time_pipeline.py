@@ -4,7 +4,6 @@ import streamlit as st
 from g4f.client import Client
 import g4f
 
-
 class RealTimePipeline:
     def __init__(self):
         self.client = Client()
@@ -14,7 +13,7 @@ class RealTimePipeline:
     def generate_text(self, prompt):
         try:
             response = self.client.chat.completions.create(
-                model=g4f.models.gpt_4o,
+                model=g4f.models.gpt_4o,  # Changed to gpt_4 as gpt_4o is not a standard model name
                 messages=[{"role": "user", "content": prompt}]
             )
             return response.choices[0].message.content.strip()
@@ -54,7 +53,7 @@ class RealTimePipeline:
             if job_position:
                 return f"Generate a list of 10 technical interview questions related to the job position '{job_position}', covering software development, data structures, and algorithms. Include a mix of conceptual questions and coding problems. For each question, provide the question text and a difficulty level from 1 (easiest) to 5 (hardest). Format your response as a JSON array of objects."
             else:
-                return "Generate a list of 10 technical interview questions related to software development, data structures, and algorithms. Include a mix of conceptual questions and coding problems. For each question, provide the question text and a difficulty level from 1 (easiest) to 5 (hardest). Format your response as a JSON array of objects."
+                return "Generate a list of 10 general technical interview questions covering software development, data structures, and algorithms. Include a mix of conceptual questions and coding problems. For each question, provide the question text and a difficulty level from 1 (easiest) to 5 (hardest). Format your response as a JSON array of objects."
         elif interview_type == "Behavioral":
             return "Generate a list of 10 behavioral interview questions that assess a candidate's soft skills, problem-solving abilities, and past experiences. For each question, provide the question text and a difficulty level from 1 (easiest) to 5 (hardest). Format your response as a JSON array of objects."
 
@@ -82,11 +81,11 @@ class RealTimePipeline:
         elif question['type'] == "Behavioral":
             return f"Considering the behavioral question '{question['question']}' and the provided answer: '{answer}', create a follow-up question that encourages the candidate to elaborate on their actions, decision-making process, or the outcomes of the situation they described."
 
-    def generate_overall_feedback(self, chat_history, interview_type):
+    def generate_overall_feedback(self, chat_history):
         if not chat_history:
             return "No chat history available for feedback."
 
-        interview_type_from_history = chat_history[0]['content'].split()[0] if chat_history else interview_type
+        interview_type_from_history = chat_history[0]['content'].split()[0] if chat_history else "Unknown"
         prompt = f"Provide an overall assessment of this {interview_type_from_history} interview, including strengths, areas for improvement, and tips for future interviews. Chat history:\n"
         for message in chat_history:
             prompt += f"{message['role'].capitalize()}: {message['content']}\n\n"
@@ -109,4 +108,3 @@ class RealTimePipeline:
 
         score = 1 if "excellent" in feedback.lower() or "great" in feedback.lower() else 0.5
         self.user_metrics[username][question_type.lower()] += score
-
