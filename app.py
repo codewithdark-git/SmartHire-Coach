@@ -8,7 +8,8 @@ def main():
     st.title("SmartHire Coach 🎓")
 
     if 'pipeline' not in st.session_state:
-        st.session_state.pipeline = RealTimePipeline()
+        csv_file = 'question.csv'
+        st.session_state.pipeline = RealTimePipeline(csv_file)
 
     if 'interview_type' not in st.session_state:
         st.session_state.interview_type = None
