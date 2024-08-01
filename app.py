@@ -1,6 +1,6 @@
 # main.py
 import streamlit as st
-from pages.interview import interview_chatbot
+from pages.interview import interview_chatbot, reset_interview
 from utils.session_state import initialize_session_state
 from utils.auth import login, signup, logout
 from utils.real_time_pipeline import RealTimePipeline
@@ -8,15 +8,15 @@ from utils.real_time_pipeline import RealTimePipeline
 
 def main():
     st.set_page_config(page_title="AI Interview Coach", layout="wide")
-    initialize_session_state()
 
     # Initialize real-time pipeline
     if 'pipeline' not in st.session_state:
         st.session_state.pipeline = RealTimePipeline()
 
-    # Sidebar for authentication and navigation
+    # Sidebar for navigation
     with st.sidebar:
         st.title("AI Interview Coach")
+        # Uncomment the following lines for authentication feature
         # if st.session_state.user:
         #     st.write(f"Welcome, {st.session_state.user}")
         #     if st.button("Logout"):
@@ -28,18 +28,11 @@ def main():
         #     with signup_tab:
         #         signup()
 
-        if st.session_state.user:
-            interview_type = st.selectbox("Choose Interview Type",
-                                          ["General", "Technical", "Behavioral"])
-            if st.button("Start New Interview"):
-                st.session_state.current_question_index = 0
-                st.session_state.interview_completed = False
-                st.session_state.chat_history = []
-
-    if st.session_state.user:
-        interview_chatbot(st.session_state.pipeline, interview_type)
-    else:
-        st.info("Please login or sign up to start your interview practice.")
+    interview_type = st.selectbox("Choose Interview Type", ["General", "Technical"])
+    # Uncomment the following line if using user authentication
+    # if st.session_state.user:
+    interview_chatbot(st.session_state.pipeline, interview_type)
+    st.button("Start New Interview", on_click=reset_interview())
 
 
 if __name__ == "__main__":
