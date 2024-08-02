@@ -1,0 +1,52 @@
+[
+    {
+        "question": "What is the difference between Python 2 and Python 3?",
+        "choices": ["Python 2 is no longer supported, Python 3 has better Unicode support, Python 3 has print() function, Python 2 has f-string support"],
+        "correct_answer": "Python 2 is no longer supported, Python 3 has better Unicode support, Python 3 has print() function, Python 2 has f-string support"
+    },
+    {
+        "question": "Explain the difference between '==' and 'is' in Python.",
+        "choices": ["'==' compares the values of the objects, 'is' compares the memory addresses of the objects", "'==' compares the memory addresses of the objects, 'is' compares the values of the objects", "'==' is used for assignment, 'is' is used for comparison", "'==' is used for comparison, 'is' is used for assignment"],
+        "correct_answer": "'==' compares the values of the objects, 'is' compares the memory addresses of the objects"
+    },
+    {
+        "question": "What is a decorator in Python?",
+        "choices": ["A decorator is a design pattern, A decorator is a function that modifies another function, A decorator is a data structure, A decorator is a Python module"],
+        "correct_answer": "A decorator is a function that modifies another function"
+    },
+    {
+        "question": "Explain list comprehension in Python.",
+        "choices": ["List comprehension is a way to create lists using a single line of code, List comprehension is a way to sort lists, List comprehension is a way to delete elements from a list, List comprehension is a way to reverse a list"],
+        "correct_answer": "List comprehension is a way to create lists using a single line of code"
+    },
+    {
+        "question": "What is the difference between 'append()' and 'extend()' methods in Python lists?",
+        "choices": ["'append()' adds an element to the end of the list, 'extend()' adds multiple elements to the end of the list, 'append()' adds multiple elements to the end of the list, 'extend()' adds an element to the end of the list"],
+        "correct_answer": "'append()' adds an element to the end of the list, 'extend()' adds multiple elements to the end of the list"
+    },
+    {
+        "question": "What is the purpose of the 'pass' statement in Python?",
+        "choices": ["To skip a block of code, To break out of a loop, To define an empty class or function, To raise an exception"],
+        "correct_answer": "To define an empty class or function"
+    },
+    {
+        "question": "Explain the use of 'lambda' functions in Python.",
+        "choices": ["Lambda functions are used to declare variables, Lambda functions are used to create anonymous functions, Lambda functions are used to import modules, Lambda functions are used to handle exceptions"],
+        "correct_answer": "Lambda functions are used to create anonymous functions"
+    },
+    {
+        "question": "What is the Global Interpreter Lock (GIL) in Python?",
+        "choices": ["GIL is a tool for debugging Python code, GIL is a lock that prevents multiple threads from executing Python bytecodes at once, GIL is a data structure in Python, GIL is a Python module"],
+        "correct_answer": "GIL is a lock that prevents multiple threads from executing Python bytecodes at once"
+    },
+    {
+        "question": "Explain the use of 'yield' keyword in Python.",
+        "choices": ["'yield' is used to return a value from a function, 'yield' is used to define a generator, 'yield' is used to raise an exception, 'yield' is used to import modules"],
+        "correct_answer": "'yield' is used to define a generator"
+    },
+    {
+        "question": "What is the purpose of the '__init__' method in Python classes?",
+        "choices": ["To initialize the class object, To define a new class, To delete a class object, To import modules"],
+        "correct_answer": "To initialize the class object"
+    }
+]
