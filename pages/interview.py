@@ -5,8 +5,8 @@ from utils.real_time_pipeline import RealTimePipeline
 
 def main():
     st.set_page_config(page_title="SmartHire Coach", page_icon="🎓", layout="wide")
-    st.page_link("app.py", "Back to Home", icon="🏠")
-    st.page_link("pages/Resume_Analyzer.py", "Resume Analyzer", icon="📄")
+    st.page_link("app.py", label="Back to Home", icon="🏠")
+    st.page_link("pages/Resume_Analyzer.py", label="Resume Analyzer", icon="📄")
 
     if 'pipeline' not in st.session_state:
         st.session_state.pipeline = RealTimePipeline()
