@@ -22,6 +22,8 @@ pipeline = RealTimePipeline()
 
 def main():
     st.set_page_config(page_title="Advanced Resume Analyzer", page_icon="📄", layout="wide")
+    st.page_link("app.py", "Back to Home", icon='🏠')
+    st.page_link("pages/interview.py", label="Go to Interview Analysis", icon="📄")
 
     st.title("📄 Advanced Resume Analyzer")
     st.write("Upload your resume and get personalized insights and recommendations!")
