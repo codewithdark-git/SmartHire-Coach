@@ -62,9 +62,8 @@ def main():
     Ready to enhance your career prospects? Upload your resume and let SmartHire Coach assist you in your job search journey!
     """)
 
-    if st.button("Upload your resume"):
-        st.write("Upload functionality will be here...")
-
+    st.page_link('pages/interview.py', label='Prepare for interviews', icon='📑')
+    st.page_link('pages/Resume Analysis.py', label='Upload your resume', icon='🪧')
 
 if __name__ == "__main__":
     main()
