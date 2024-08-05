@@ -9,7 +9,6 @@ from collections import Counter
 import re
 
 
-
 def extract_skills(text):
     common_skills = ["Python", "Java", "C++", "JavaScript", "React", "Node.js", "SQL", "Machine Learning",
                      "Data Analysis", "Project Management"]
