@@ -1,4 +1,5 @@
 import streamlit as st
+from utils.real_time_pipeline import RealTimePipeline
 
 
 def interview_chatbot(pipeline, interview_type):
@@ -37,7 +38,8 @@ def interview_chatbot(pipeline, interview_type):
 
         # If the user has provided an answer, process it
         if user_answer:
-            process_user_answer(pipeline, current_question, user_answer)
+            with st.spinner("Processing your answer..."):
+                process_user_answer(pipeline, current_question, user_answer)
 
             # Update session state and rerun to display the next question
             st.session_state.current_question_index += 1
@@ -45,6 +47,7 @@ def interview_chatbot(pipeline, interview_type):
     else:
         # Display interview completion and overall feedback if all questions have been answered
         display_interview_completion(pipeline)
+
 
 def display_user_info_prompt():
     st.chat_message("assistant").markdown(
@@ -89,6 +92,7 @@ def display_question_and_get_answer(question, interview_type):
     else:
         return st.chat_input("Your answer")
 
+
 def process_user_answer(pipeline, question, user_answer):
     with st.chat_message("user"):
         st.markdown(user_answer)
@@ -98,7 +102,8 @@ def process_user_answer(pipeline, question, user_answer):
 
     with st.expander("Feedback"):
         st.chat_message("assistant").write(feedback)
-        st.session_state.chat_history.append({"role": "assistant", "content": feedback})
+    st.session_state.chat_history.append({"role": "assistant", "content": feedback})
+
 
 def display_interview_completion(pipeline):
     if 'interview_completed' not in st.session_state:
@@ -110,6 +115,7 @@ def display_interview_completion(pipeline):
 
         if st.button("View Detailed Feedback"):
             display_detailed_feedback(pipeline)
+
 
 def display_detailed_feedback(pipeline):
     st.subheader("Detailed Feedback")
