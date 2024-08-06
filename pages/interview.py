@@ -17,7 +17,7 @@ def main():
     st.sidebar.title("Interview Settings")
     interview_type = st.sidebar.radio(
         "Select Interview Type",
-        ("General", "Technical"),
+        ("General", "Technical"), index=None,
         key="interview_type_selection"
     )
 
