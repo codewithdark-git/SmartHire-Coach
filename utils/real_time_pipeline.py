@@ -1,6 +1,5 @@
 import os
 import re
-import streamlit as st
 from g4f.client import Client
 from g4f.Provider import MetaAI, DDG, Pizzagpt
 import g4f
@@ -8,31 +7,28 @@ import json
 from ai71 import AI71
 from dotenv import load_dotenv
 import os
+import streamlit as st
 
 load_dotenv()
 
+
 class RealTimePipeline:
     def __init__(self):
-        self.client = Client()
+        self.client = AI71(api_key=os.getenv("AI71_API_KEY"))
         self.question_cache = {}
         self.user_metrics = {}
-        self.ai71 = AI71()
-        self.AI71_API_KEY = os.getenv("AI71_API_KEY")
 
     def generate_text(self, prompt):
         try:
-            full_response = ""
-            for chunk in AI71(self.AI71_API_KEY).chat.completions.create(
+            response = self.client.chat.completions.create(
                     model="tiiuae/falcon-11b",
                     messages=[
                         {"role": "user", "content": prompt},
                     ],
-                    stream=True,
-            ):
-                if chunk.choices[0].delta.content:
-                    full_response += chunk.choices[0].delta.content  # Append each chunk to the full response
-            print(full_response)
-            return full_response
+            )
+            response = response.choices[0].message.content.strip()
+            print(response)
+            return response
         except Exception as e:
             st.error(f"Error generating response: {str(e)}")
             return ""
@@ -45,7 +41,7 @@ class RealTimePipeline:
     #             provider=DDG
     #         )
     #         response = response.choices[0].message.content.strip()
-    #         # print(response)
+    #         print(response)
     #         return response
     #     except Exception as e:
     #         st.error(f"Error generating response: {str(e)}")
