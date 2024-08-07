@@ -1,6 +1,5 @@
 import streamlit as st
 
-
 def interview_chatbot(pipeline, interview_type):
     st.header(f"{interview_type} Interview Practice")
 
@@ -14,7 +13,7 @@ def interview_chatbot(pipeline, interview_type):
         if 'user_info_collected' not in st.session_state or not st.session_state.user_info_collected:
             display_user_info_prompt()
             # Check if user info is correctly set
-            if 'job_position' not in st.session_state or 'question_type' not in st.session_state:
+            if 'job_position' not in st.session_state:
                 return  # Ensure to stop here until user info is provided
 
     for message in st.session_state.chat_history:
@@ -31,39 +30,32 @@ def interview_chatbot(pipeline, interview_type):
         user_answer = display_question_and_get_answer(current_question, interview_type)
 
         if user_answer:
-            with st.spinner("Generating feedback..."):
-                process_user_answer(pipeline, current_question, user_answer)
+            process_user_answer(pipeline, current_question, user_answer)
 
             st.session_state.current_question_index += 1
             st.rerun()
     else:
         display_interview_completion(pipeline)
 
-
 def display_user_info_prompt():
     st.chat_message("assistant").markdown(
-        "For the Technical interview, please provide the following information:"
-        "\n1. **Job Position** (e.g., Software Engineer, Data Scientist)"
-        "\n2. **Question Type** (Multiple Choice or Open-ended)"
+        "For the Technical interview, please provide the job position (e.g., Software Engineer, Data Scientist):"
     )
 
     job_position = st.text_input("Enter Job Position")
-    question_type = st.radio("Select Question Type", ['Multiple Choice', 'Open-ended'], index=None)
 
-    # Ensure both fields are filled
-    if job_position and question_type:
+    # Ensure job position is filled
+    if job_position:
         st.session_state.job_position = job_position
-        st.session_state.question_type = question_type
         st.session_state.user_info_collected = True
         st.chat_message("user").markdown(
-            f"The job position is **{st.session_state.job_position}** and the question type is **{st.session_state.question_type}**."
+            f"The job position is **{st.session_state.job_position}**."
         )
     else:
         st.session_state.user_info_collected = False
         st.chat_message("assistant").markdown(
-            "Please provide both a valid Job Position and Question Type to proceed."
+            "Please provide a valid Job Position to proceed."
         )
-
 
 def display_question_and_get_answer(question, interview_type):
     with st.chat_message("assistant"):
@@ -71,12 +63,11 @@ def display_question_and_get_answer(question, interview_type):
     st.session_state.chat_history.append({"role": "assistant", "content": question['question']})
 
     if interview_type == "Technical" and question.get('options'):
-        st.markdown("Select Your answer:")
+        st.markdown("Select your answer:")
         user_answer = st.radio("", question['options'], key=f"mc_answer_{st.session_state.current_question_index}", index=None)
         return user_answer
     else:
         return st.chat_input("Your answer")
-
 
 def process_user_answer(pipeline, question, user_answer):
     with st.chat_message("user"):
@@ -84,10 +75,9 @@ def process_user_answer(pipeline, question, user_answer):
     st.session_state.chat_history.append({"role": "user", "content": user_answer})
 
     feedback = pipeline.process_answer(question, user_answer)
-
-    st.chat_message("assistant").markdown(f'####Feedback: {feedback}')
+    with st.expander("See the Feedback"):
+        st.markdown(feedback)
     st.session_state.chat_history.append({"role": "assistant", "content": feedback})
-
 
 def display_interview_completion(pipeline):
     if 'interview_completed' not in st.session_state:
@@ -99,7 +89,6 @@ def display_interview_completion(pipeline):
 
         if st.button("View Detailed Feedback"):
             display_detailed_feedback(pipeline)
-
 
 def display_detailed_feedback(pipeline):
     st.subheader("Detailed Feedback")
