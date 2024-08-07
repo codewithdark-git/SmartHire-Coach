@@ -1,30 +1,26 @@
-import os
-import re
-from g4f.client import Client
-from g4f.Provider import MetaAI, DDG, Pizzagpt
-import g4f
 import json
+import re
+import streamlit as st
+from g4f.client import Client
 from ai71 import AI71
 from dotenv import load_dotenv
 import os
-import streamlit as st
+import g4f
 
 load_dotenv()
 
-
 class RealTimePipeline:
     def __init__(self):
-        self.client = AI71(api_key=os.getenv("AI71_API_KEY"))
+        self.client = Client()
         self.question_cache = {}
         self.user_metrics = {}
+        # self.client = AI71(api_key=os.getenv("AI71_API_KEY"))
 
     def generate_text(self, prompt):
         try:
             response = self.client.chat.completions.create(
-                    model="tiiuae/falcon-11b",
-                    messages=[
-                        {"role": "user", "content": prompt},
-                    ],
+                model=g4f.models.gpt_4o,  # Ensure using the correct model
+                messages=[{"role": "user", "content": prompt}]
             )
             response = response.choices[0].message.content.strip()
             print(response)
@@ -33,19 +29,31 @@ class RealTimePipeline:
             st.error(f"Error generating response: {str(e)}")
             return ""
 
-    # def generate_text(self, prompt):
-    #     try:
-    #         response = self.client.chat.completions.create(
-    #             model=g4f.models.gpt_35_turbo,
-    #             messages=[{"role": "user", "content": prompt}],
-    #             provider=DDG
-    #         )
-    #         response = response.choices[0].message.content.strip()
-    #         print(response)
-    #         return response
-    #     except Exception as e:
-    #         st.error(f"Error generating response: {str(e)}")
-    #         return "I'm sorry, I couldn't generate a response at this time."
+    """The Below Code is for the Falcon-180b-chat model but
+            its not working as expected. its not generating the response
+            if the prompt is too long.
+    def generate_text(self, prompt):
+        try:
+            if not self.client:
+                raise ValueError("API client is not initialized.")
+
+            response = self.client.chat.completions.create(
+                            model="tiiuae/falcon-180b-chat",
+                            messages=[
+                                {"role": "user", "content": prompt},
+                            ],
+                            
+                    )
+            response = response.choices[0].message.content.strip()
+                    # print(response)
+            return response
+        except ConnectionError as e:
+                    st.error(f"Connection Error: {e}")
+                    return ""
+        except Exception as e:
+                    st.error(f"Error generating response: {str(e)}")
+                    return ""
+        """
 
     def fetch_questions(self, interview_type, job_position=None):
         cache_key = f"{interview_type}_{job_position}" if job_position else interview_type
@@ -70,15 +78,14 @@ class RealTimePipeline:
             ]
 
             self.question_cache[cache_key] = sorted(questions, key=lambda x: x['difficulty'])
-
         return self.question_cache[cache_key]
 
     def get_question_prompt(self, interview_type, job_position=None):
         if interview_type == "General":
-            return "Generate a list of 20 general interview questions, ranging from easy to hard. For each question, provide the question text and a difficulty level from 1 (easiest) to 5 (hardest). Format your response as a JSON array of objects."
+            return "Generate a list of 10 general interview questions, ranging from easy to hard. For each question, provide the question text and a difficulty level from 1 (easiest) to 5 (hardest). Format your response as a JSON array of objects."
         elif interview_type == "Technical":
             if job_position:
-                return f"Generate a list of 20 technical interview questions related to the job position '{job_position}', covering software development, data structures, and algorithms. Include a mix of conceptual questions and coding problems. For each question, provide the question text, a difficulty level from 1 (easiest) to 5 (hardest), and 4 multiple-choice options. Format your response as a JSON array of objects, where each object has 'question', 'difficulty', and 'options' fields."
+                return f"Generate a list of 10 technical interview questions related to the job position '{job_position}', covering software development, data structures, and algorithms. Include a mix of conceptual questions and coding problems. For each question, provide the question text, a difficulty level from 1 (easiest) to 5 (hardest), and 4 multiple-choice options. Format your response as a JSON array of objects, where each object has 'question', 'difficulty', and 'options' fields."
 
     def process_answer(self, question, answer):
         prompt = self.get_feedback_prompt(question, answer)
@@ -86,9 +93,9 @@ class RealTimePipeline:
 
     def get_feedback_prompt(self, question, answer):
         if question['type'] == "General":
-            return f"Provide constructive feedback for this {question['difficulty']}-level general interview question: '{question['question']}' and the given answer: '{answer}'. Include strengths, areas for improvement, and suggest a way to enhance the answer in shorter form. Consider the following: clarity, relevance"
+            return f"Provide constructive feedback for this {question['difficulty']}-level general interview question: '{question['question']}' and the given answer: '{answer}'. Include strengths, areas for improvement, and suggest a way to enhance the answer."
         elif question['type'] == "Technical":
-            return f"Evaluate this {question['difficulty']}-level technical answer to the question: '{question['question']}'. Answer given: '{answer}'. {question['options']} Provide the correct option(s) and explain why and how you would improve the answer. Consider the following: technical accuracy, problem-solving approach, and code quality (if applicable) in most short explanation."
+            return f"Evaluate this {question['difficulty']}-level technical answer to the question: '{question['question']}'. Answer given: '{answer}'. Assess technical accuracy, problem-solving approach, and code quality (if applicable). Provide specific technical improvements or alternative solutions if needed."
 
     def generate_overall_feedback(self, chat_history):
         if not chat_history:
@@ -121,8 +128,7 @@ class RealTimePipeline:
 
     def update_metrics(self, username, question_type, feedback):
         if username not in self.user_metrics:
-            self.user_metrics[username] = {'general': 0, 'technical': 0}
+            self.user_metrics[username] = {'general': 0, 'technical': 0, 'behavioral': 0}
 
         score = 1 if "excellent" in feedback.lower() or "great" in feedback.lower() else 0.5
         self.user_metrics[username][question_type.lower()] += score
-
