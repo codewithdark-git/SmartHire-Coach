@@ -27,10 +27,7 @@ def main():
 
     if interview_type is None:
         st.chat_message("assistant").write("Please select an interview type from the sidebar to begin.")
-    elif interview_type == "General":
-        st.chat_message("assistant").write("You've selected the **General** interview type. Please proceed with the general questions.")
-    elif interview_type == "Technical":
-        st.chat_message("assistant").write("You've selected the **Technical** interview type. Please provide the necessary details and proceed.")
+
 
     if st.sidebar.button("Start New Interview", key="start_new_interview"):
         reset_interview_state()
